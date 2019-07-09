@@ -19,6 +19,16 @@ func TestUgly(t *testing.T) {
       30, 32, 36, 40, 45, 48, 50, 54, 60, 64, 72, 75, 80, 81, 90)
 }
 
+func TestNthUgly(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+  indexer := gomath.NewBigIntIndexer(gomath.Ugly(ctx, 3, 5, 7))
+  n, _ := indexer.Nth(50)
+  assertBigIntEqual(t, 2401, n)
+  n, _ = indexer.Nth(100)
+  assertBigIntEqual(t, 33075, n)
+}
+
 func TestSingleFactor(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
@@ -30,13 +40,11 @@ func TestSingleFactor(t *testing.T) {
 }
 
 func TestPanic(t *testing.T) {
-  defer func() {
-    recover()
-  }()
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  gomath.Ugly(ctx, 1, 2, 3)
-  t.Fatal("Expected Ugly to panic")
+  assertPanic(
+      t,
+      func() {
+        gomath.Ugly(context.Background(), 1, 2, 3)
+      })
 }
 
 func BenchmarkUgly(b *testing.B) {
@@ -53,7 +61,6 @@ func BenchmarkUgly(b *testing.B) {
   }
 }
     
-
 func TestContext(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   uglies := gomath.Ugly(ctx, 3, 5, 7)
