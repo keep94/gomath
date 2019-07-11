@@ -6,6 +6,7 @@ import (
 
 // BigIntIndexer is used to find the nth big.Int taken from a channel.
 // It does this by tracking all the values it takes from the channel.
+// BigIntIndexer instances are not safe to use with multiple goroutines.
 type BigIntIndexer struct {
   ch <-chan *big.Int
   values []*big.Int
