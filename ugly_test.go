@@ -23,9 +23,10 @@ func TestNthUgly(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
   indexer := gomath.NewBigIntIndexer(gomath.Ugly(ctx, 3, 5, 7))
-  n, _ := indexer.Nth(50)
+  result := new(big.Int)
+  n, _ := indexer.Nth(50, result)
   assertBigIntEqual(t, 2401, n)
-  n, _ = indexer.Nth(100)
+  n, _ = indexer.Nth(100, result)
   assertBigIntEqual(t, 33075, n)
 }
 

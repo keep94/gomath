@@ -16,10 +16,11 @@ func NewBigIntIndexer(ch <-chan *big.Int) *BigIntIndexer {
   return &BigIntIndexer{ch: ch}
 }
 
-// Nth returns the nth big.Int taken from the channel consuming the channel as
-// needed. Nth returns ok = false if the channel has fewer than n values or if
-// n < 1.
-func (b *BigIntIndexer) Nth(n int) (value *big.Int, ok bool) {
+// Nth stores in result the nth big.Int taken from the channel consuming the
+// channel as needed and returns result, true. If n < 1 or if the channel has
+// fewer values than n,  Nth returns nil, false and the value of result is
+// left unchanged.
+func (b *BigIntIndexer) Nth(n int, result *big.Int) (value *big.Int, ok bool) {
   if n < 1 {
     return
   }
@@ -30,5 +31,5 @@ func (b *BigIntIndexer) Nth(n int) (value *big.Int, ok bool) {
     }
     b.values = append(b.values, val)
   }
-  return new(big.Int).Set(b.values[n-1]), true
+  return result.Set(b.values[n-1]), true
 }
