@@ -50,3 +50,25 @@ func assertPanic(t *testing.T, f func()) {
   f()
   t.Error("Expected panic")
 }
+
+func assertEqual(
+    t *testing.T, expected, actual interface{}) {
+  t.Helper()
+  if expected != actual {
+    t.Errorf("Expected %v, got %v", expected, actual)
+  }
+}
+
+func checkInfInt64Chan(
+    t *testing.T, ch <-chan int64, expectedValues ...int64) {
+  t.Helper()
+  for _, expected := range expectedValues {
+    actual, ok := <-ch
+    if !ok {
+        t.Fatal("No more values on channel")
+    }
+    if actual != expected {
+      t.Fatalf("Expected %v, got %v", expected, actual)
+    }
+  }
+}
