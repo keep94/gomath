@@ -52,7 +52,7 @@ func NewIntIndexer(ch <-chan int64) *IntIndexer {
   return &IntIndexer{ch: ch}
 }
 
-// Nth returns the nth big.Int taken from the channel consuming the
+// Nth returns the nth int64 taken from the channel consuming the
 // channel as needed. If n < 1 or if the channel has fewer values than n,
 // Nth returns ok=false.
 func (i *IntIndexer) Nth(n int) (value int64, ok bool) {
