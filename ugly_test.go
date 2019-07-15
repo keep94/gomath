@@ -24,10 +24,8 @@ func TestNthUgly(t *testing.T) {
   defer cancel()
   indexer := gomath.NewBigIntIndexer(gomath.Ugly(ctx, 3, 5, 7))
   result := new(big.Int)
-  n, _ := indexer.Nth(50, result)
-  assertBigIntEqual(t, 2401, n)
-  n, _ = indexer.Nth(100, result)
-  assertBigIntEqual(t, 33075, n)
+  assertBigIntEqual(t, 2401, indexer.Nth(50, result))
+  assertBigIntEqual(t, 33075, indexer.Nth(100, result))
 }
 
 func TestSingleFactor(t *testing.T) {
