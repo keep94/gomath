@@ -15,6 +15,7 @@ func TestBigIntIndexer(t *testing.T) {
   })
   assertBigIntEqual(t, 6, indexer.Nth(2, result))
   assertTrue(t, result == indexer.Nth(2, result))
+  assertBigIntEqual(t, 6, indexer.Nth(2, result))
   assertBigIntEqual(t, 45, indexer.Nth(15, result))
   assertPanic(t, func() {
     indexer.Nth(16, result)
@@ -25,8 +26,10 @@ func TestBigIntIndexer(t *testing.T) {
 func TestBigIntIndexerNil(t *testing.T) {
   indexer := gomath.NewBigIntIndexer(nilBigInts())
   result := new(big.Int)
+  assertBigIntEqual(t, 10, indexer.Nth(5, result))
+  assertBigIntEqual(t, 8, indexer.Nth(4, result))
   assertPanic(t, func() {
-    indexer.Nth(5, result)
+    indexer.Nth(3, result)
   })
 }
 
@@ -51,8 +54,10 @@ func TestBigIntChan(t *testing.T) {
 func TestBigIntChanNil(t *testing.T) {
   ch := gomath.NewBigIntChan(nilBigInts())
   assertPanic(t, func() {
-    ch.Nth(5)
+    ch.Nth(3)
   })
+  assertBigIntEqual(t, 8, ch.Nth(4))
+  assertBigIntEqual(t, 10, ch.Nth(5))
 }
 
 func TestIntIndexer(t *testing.T) {
@@ -60,6 +65,7 @@ func TestIntIndexer(t *testing.T) {
   assertPanic(t, func() {
     indexer.Nth(0)
   })
+  assertEqual(t, int64(6),indexer.Nth(2))
   assertEqual(t, int64(6),indexer.Nth(2))
   assertEqual(t, int64(45), indexer.Nth(15))
   assertPanic(t, func() {
@@ -73,7 +79,7 @@ func TestIntChan(t *testing.T) {
   assertPanic(t, func() {
     ch.Nth(0)
   })
-  assertEqual(t, int64(6),ch.Nth(2))
+  assertEqual(t, int64(6), ch.Nth(2))
   assertEqual(t, int64(45), ch.Nth(15))
   assertPanic(t, func() {
     ch.Nth(16)
@@ -98,11 +104,11 @@ func nilBigInts() <-chan *big.Int {
   result := make(chan *big.Int)
   go func() {
     defer close(result)
-    result <- big.NewInt(3)
-    result <- big.NewInt(3)
+    result <- big.NewInt(2)
+    result <- big.NewInt(4)
     result <- nil
-    result <- big.NewInt(3)
-    result <- big.NewInt(3)
+    result <- big.NewInt(8)
+    result <- big.NewInt(10)
   }()
   return result
 }
