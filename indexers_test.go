@@ -30,6 +30,31 @@ func TestBigIntIndexerNil(t *testing.T) {
   })
 }
 
+func TestBigIntChan(t *testing.T) {
+  ch := gomath.NewBigIntChan(upTo45By3())
+  assertPanic(t, func() {
+    ch.Nth(0)
+  })
+  assertBigIntEqual(t, 6, ch.Nth(2))
+  assertPanic(t, func() {
+    ch.Nth(2)
+  })
+  assertBigIntEqual(t, 45, ch.Nth(15))
+  assertPanic(t, func() {
+    ch.Nth(16)
+  })
+  assertPanic(t, func() {
+    ch.Nth(10)
+  })
+}
+
+func TestBigIntChanNil(t *testing.T) {
+  ch := gomath.NewBigIntChan(nilBigInts())
+  assertPanic(t, func() {
+    ch.Nth(5)
+  })
+}
+
 func TestIntIndexer(t *testing.T) {
   indexer := gomath.NewIntIndexer(upTo45By3Int())
   assertPanic(t, func() {
@@ -41,6 +66,21 @@ func TestIntIndexer(t *testing.T) {
     indexer.Nth(16)
   })
   assertEqual(t, int64(30), indexer.Nth(10))
+}
+
+func TestIntChan(t *testing.T) {
+  ch := gomath.NewIntChan(upTo45By3Int())
+  assertPanic(t, func() {
+    ch.Nth(0)
+  })
+  assertEqual(t, int64(6),ch.Nth(2))
+  assertEqual(t, int64(45), ch.Nth(15))
+  assertPanic(t, func() {
+    ch.Nth(16)
+  })
+  assertPanic(t, func() {
+    ch.Nth(10)
+  })
 }
 
 func upTo45By3() <-chan *big.Int {
