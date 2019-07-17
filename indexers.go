@@ -7,8 +7,8 @@ import (
 const (
   kNLessThan1 = "n was less than 1"
   kNoMoreValues = "No more values on channel"
-  kNotGreater = "n is not greater than n in previous call to Nth"
-  kNilBigInt = "nil *big.Int encountered on channel"
+  kNotGreater = "n is not greater than the number of values already taken from channel"
+  kNilBigInt = "nth *big.Int is nil"
 )
 
 // BigIntIndexer is used to find the nth big.Int taken from a channel.
@@ -26,7 +26,7 @@ func NewBigIntIndexer(ch <-chan *big.Int) *BigIntIndexer {
 
 // Nth stores in result the nth big.Int taken from the channel consuming the
 // channel as needed and returns result. Nth panics if n < 1, if n is greater
-// than the number of values in the channel or if the nth value is nil.
+// than the total number of values in the channel or if the nth value is nil.
 func (b *BigIntIndexer) Nth(n int, result *big.Int) *big.Int {
   if n < 1 {
     panic(kNLessThan1)
@@ -46,7 +46,9 @@ func (b *BigIntIndexer) Nth(n int, result *big.Int) *big.Int {
 }
 
 // BigIntChan works like BigIntIndexer except it doesn't store values
-// taken from the channel.
+// taken from the channel. Consequently, the values passed to Nth must be
+// in increasing order.
+// BigIntChan instances are not safe to use with multiple goroutines.
 type BigIntChan struct {
   ch <-chan *big.Int
   numTaken int64
@@ -59,7 +61,7 @@ func NewBigIntChan(ch <-chan *big.Int) *BigIntChan {
 
 // Nth returns the nth big.Int taken from the channel.
 // Nth panics if n is not greater than the number of values already taken from
-// the channel, if n is greater than the number of values in the channel,
+// the channel, if n is greater than the total number of values in the channel,
 // or if the nth value is nil
 func (b *BigIntChan) Nth(n int64) *big.Int {
   if n <= b.numTaken {
@@ -94,8 +96,8 @@ func NewIntIndexer(ch <-chan int64) *IntIndexer {
 }
 
 // Nth returns the nth int64 taken from the channel consuming the
-// channel as needed. Nth panics if n < 1 or if n is greater than the number
-// of values in the channel.
+// channel as needed. Nth panics if n < 1 or if n is greater than the total
+// number of values in the channel.
 func (i *IntIndexer) Nth(n int) int64 {
   if n < 1 {
     panic(kNLessThan1)
@@ -111,7 +113,9 @@ func (i *IntIndexer) Nth(n int) int64 {
 }
 
 // IntChan works like IntIndexer except it doesn't store values
-// taken from the channel.
+// taken from the channel. Consequently, the values passed to Nth must be
+// in increasing order.
+// IntChan instances are not safe to use with multiple goroutines.
 type IntChan struct {
   ch <-chan int64
   numTaken int64
@@ -124,7 +128,7 @@ func NewIntChan(ch <-chan int64) *IntChan {
 
 // Nth returns the nth int64 taken from the channel.
 // Nth panics if n is not greater than the number of values already taken
-// from the channel or if n is greater than the number of values in the
+// from the channel or if n is greater than the total number of values in the
 // channel.
 func (i *IntChan) Nth(n int64) int64 {
   if n <= i.numTaken {
