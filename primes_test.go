@@ -49,6 +49,26 @@ func TestNthPrime(t *testing.T) {
   assertTrue(t, p9593 > 100000)
 }
 
+func TestDecadePrimes(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+  decades := gomath.DecadePrimes(ctx, 0)
+  checkInfInt64Chan(
+      t,
+      decades,
+      1, 10, 19, 82, 148, 187, 208)
+}
+
+func TestDecadePrimesBigStart(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+  decades := gomath.DecadePrimes(ctx, 10)
+  checkInfInt64Chan(
+      t,
+      decades,
+      10, 19, 82, 148, 187, 208)
+}
+
 func BenchmarkPrimes(b *testing.B) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
@@ -62,11 +82,19 @@ func BenchmarkPrimes(b *testing.B) {
     }
   }
 }
-    
+
 func TestPrimesContext(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   primes := gomath.Primes(ctx, 2)
   cancel()
   for range primes {
+  }
+}
+
+func TestDecadePrimesContext(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  decades := gomath.DecadePrimes(ctx, 100)
+  cancel()
+  for range decades {
   }
 }

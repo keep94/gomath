@@ -65,3 +65,34 @@ func initSieve(sieveSize int) []bool {
   }
   return result
 }
+
+// DecadePrimes generates all x >= start in ascending order such that
+// 10x + 1, 10x + 3, 10x + 7, and 10x + 9 are all prime.
+func DecadePrimes(ctx context.Context, start int64) <-chan int64 {
+  if start < 1 {
+    start = 1
+  }
+  lastDecade := int64(0)
+  primeCount := 0
+  primes := Primes(ctx, 10*start + 1)
+  result := make(chan int64)
+  go func() {
+    defer close(result)
+    for p := range primes {
+      if p / 10 == lastDecade {
+        primeCount++
+      } else {
+        lastDecade = p / 10
+        primeCount = 1
+      }
+      if primeCount == 4 {
+        select {
+          case <-ctx.Done():
+            return
+          case result <- lastDecade:
+        }
+      }
+    }
+  }()
+  return result
+}
