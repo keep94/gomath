@@ -2,6 +2,7 @@ package gomath
 
 import (
   "context"
+  "math"
 )
 
 // Harshads generates the harshad numbers in order that are greater than or
@@ -21,6 +22,9 @@ func Harshads(ctx context.Context, start int64) <-chan int64 {
             return
           case result <- start:
         }
+      }
+      if start == math.MaxInt64 {
+        return
       }
       start++
       sum++

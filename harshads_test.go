@@ -2,6 +2,7 @@ package gomath_test
 
 import (
   "context"
+  "math"
   "testing"
 
   "github.com/keep94/gomath"
@@ -15,6 +16,17 @@ func TestHarshads(t *testing.T) {
       t,
       harshads,
       90, 100, 102, 108, 110, 111, 112, 114, 117, 120)
+}
+
+func TestHarshadsMax(t *testing.T) {
+  start := int64(math.MaxInt64 - 1000)
+  harshads := gomath.Harshads(context.Background(), start)
+  found := false
+  for h := range harshads {
+    assertTrue(t, h >= start)
+    found = true
+  }
+  assertTrue(t, found)
 }
 
 func TestNthHarshad(t *testing.T) {

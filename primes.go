@@ -2,6 +2,7 @@ package gomath
 
 import (
   "context"
+  "math"
 )
 
 // Primes generates the prime numbers in order that are greater than or
@@ -22,24 +23,26 @@ func Primes(ctx context.Context, start int64) <-chan int64 {
     }
     sieveSize := int64(1000)
     for {
+      if start == math.MaxInt64 {
+        return
+      }
+      if sieveSize*2 > math.MaxInt64 - start {
+        sieveSize = (math.MaxInt64 - start) / 2
+      }
       sieve := initSieve(int(sieveSize))
       factor := int64(3)
-      for factor*factor < start + sieveSize*2 {
-        var mult int64
-        if factor*factor >= start {
-          mult = factor * factor
-        } else {
-          // smallest odd multiple of factor that is >= start
-          mult = (start + factor - 1) / (2*factor) * (2*factor) + factor
+      for factor <= (start + sieveSize*2 - 2) / factor {
+        multStart := divideRoundUpOdd(start, factor)
+        if multStart < factor {
+          multStart = factor
         }
-        for mult < start + sieveSize*2 {
-          sieve[int((mult - start) / 2)] = false
-          mult += (2 * factor)
+        multEnd := divideRoundUpOdd(start + sieveSize*2, factor)
+        for mult := multStart; mult < multEnd; mult += 2 {
+          sieve[int((mult*factor - start) / 2)] = false
         }
         factor += 2
       }
-      idx := int64(0)
-      for idx < sieveSize {
+      for idx := int64(0); idx < sieveSize; idx++ {
         if sieve[int(idx)] {
           select {
             case <-ctx.Done():
@@ -47,7 +50,6 @@ func Primes(ctx context.Context, start int64) <-chan int64 {
             case result <- start + 2*idx:
           }
         }
-        idx++
       }
       start += sieveSize*2
       if sieveSize < 1000000 {
@@ -56,6 +58,11 @@ func Primes(ctx context.Context, start int64) <-chan int64 {
     }
   }()
   return result
+}
+
+func divideRoundUpOdd(n, d int64) int64 {
+  roundUp := (n - 1) / d + 1
+  return roundUp / 2 * 2 + 1
 }
 
 func initSieve(sieveSize int) []bool {

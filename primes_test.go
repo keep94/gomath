@@ -2,6 +2,7 @@ package gomath_test
 
 import (
   "context"
+  "math"
   "testing"
 
   "github.com/keep94/gomath"
@@ -32,7 +33,27 @@ func TestPrimesBigStart(t *testing.T) {
   assertTrue(t, p1229 < 10000)
   assertTrue(t, p1230 > 10000)
 }
+
+func TestPrimesMax(t *testing.T) {
+  primes := gomath.Primes(context.Background(), math.MaxInt64)
+  for range primes {
+    t.Error("Didn't expect any primes")
+  }
+}
   
+/*
+// Commented out for now as it takes 39 seconds to run this one test
+func TestPrimesMax1000(t *testing.T) {
+  start := int64(math.MaxInt64 - 1000)
+  primes := gomath.Primes(context.Background(), start)
+  primesFound := false
+  for p := range primes {
+    assertTrue(t, p >= start)
+    primesFound = true
+  }
+  assertTrue(t, primesFound)
+}
+*/
 
 func TestNthPrime(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
