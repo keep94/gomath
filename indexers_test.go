@@ -89,6 +89,22 @@ func TestIntChan(t *testing.T) {
   })
 }
 
+func TestIntSafeChan(t *testing.T) {
+  ch := gomath.NewIntChan(upTo45By3Int())
+  assertPanic(t, func() {
+    ch.SafeNth(0)
+  })
+  result, ok := ch.SafeNth(2)
+  assertTrue(t, ok)
+  assertEqual(t, int64(6), result)
+  result, ok = ch.SafeNth(16)
+  assertTrue(t, !ok)
+  assertEqual(t, int64(0), result)
+  assertPanic(t, func() {
+    ch.Nth(10)
+  })
+}
+
 func upTo45By3() <-chan *big.Int {
   result := make(chan *big.Int)
   go func() {

@@ -126,22 +126,30 @@ func NewIntChan(ch <-chan int64) *IntChan {
   return &IntChan{ch: ch}
 }
 
-// Nth returns the nth int64 taken from the channel.
-// Nth panics if n is not greater than the number of values already taken
-// from the channel or if n is greater than the total number of values in the
-// channel.
+// Nth works like SafeNth except that Nth panics if n is greater than the
+// total number of values in the channel.
 func (i *IntChan) Nth(n int64) int64 {
+  result, ok := i.SafeNth(n)
+  if !ok {
+    panic(kNoMoreValues)
+  }
+  return result
+}
+
+// SafeNth returns the nth int64 taken from the channel.
+// SafeNth panics if n is not greater than the number of values already
+// taken from the channel. If n is greater than the total number of
+// values in the channel, SafeNth returns ok=false.
+func (i *IntChan) SafeNth(n int64) (result int64, ok bool) {
   if n <= i.numTaken {
     panic(kNotGreater)
   }
-  var result int64
-  var ok bool
   for n > i.numTaken {
     result, ok = <-i.ch
     if !ok {
-      panic(kNoMoreValues)
+      return
     }
     i.numTaken++
   }
-  return result
+  return
 }
