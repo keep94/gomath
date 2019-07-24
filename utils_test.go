@@ -4,6 +4,8 @@ import (
   "math"
   "math/big"
   "testing"
+
+  "github.com/keep94/gomath"
 )
 
 
@@ -69,6 +71,29 @@ func checkInfInt64Chan(
     }
     if actual != expected {
       t.Fatalf("Expected %v, got %v", expected, actual)
+    }
+  }
+}
+
+func assertPP(t *testing.T, pp []gomath.PrimePower, factors ...int64) {
+  t.Helper()
+  if len(factors) % 2 != 0 {
+    panic("Factors length must be multiple of 2")
+  }
+  length := len(factors) / 2
+  if len(pp) != length {
+    t.Fatalf("Expected %v prime powers, got %v", length, len(pp))
+  }
+  for i := 0; i < length; i++ {
+    if pp[i].Prime != factors[2*i] {
+      t.Errorf("Expected prime %v, got %v", factors[2*i], pp[i].Prime)
+    }
+    if pp[i].Power != int(factors[2*i+1]) {
+      t.Errorf(
+          "For prime %v expected power %v, got %v",
+          pp[i].Prime,
+          factors[2*i+1],
+          pp[i].Power)
     }
   }
 }
