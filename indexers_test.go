@@ -80,6 +80,9 @@ func TestIntChan(t *testing.T) {
     ch.Nth(0)
   })
   assertEqual(t, int64(6), ch.Nth(2))
+  assertPanic(t, func() {
+    ch.Nth(2)
+  })
   assertEqual(t, int64(45), ch.Nth(15))
   assertPanic(t, func() {
     ch.Nth(16)
@@ -97,6 +100,9 @@ func TestIntSafeChan(t *testing.T) {
   result, ok := ch.SafeNth(2)
   assertTrue(t, ok)
   assertEqual(t, int64(6), result)
+  assertPanic(t, func() {
+    ch.SafeNth(2)
+  })
   result, ok = ch.SafeNth(16)
   assertTrue(t, !ok)
   assertEqual(t, int64(0), result)
