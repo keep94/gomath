@@ -6,7 +6,8 @@ import (
 )
 
 // Primes generates the prime numbers in order that are greater than or
-// equal to start.
+// equal to start. Primes stops generating primes when it reaches
+// math.MaxInt64
 func Primes(ctx context.Context, start int64) <-chan int64 {
   result := make(chan int64)
   go func() {
@@ -74,10 +75,15 @@ func initSieve(sieveSize int) []bool {
 }
 
 // DecadePrimes generates all x >= start in ascending order such that
-// 10x + 1, 10x + 3, 10x + 7, and 10x + 9 are all prime.
+// 10x + 1, 10x + 3, 10x + 7, and 10x + 9 are all prime. DecadePrimes stops
+// generating when 10*x > math.MaxInt64. If start*10 > math.MaxInt64,
+// DecadePrimes generates nothing.
 func DecadePrimes(ctx context.Context, start int64) <-chan int64 {
   if start < 1 {
     start = 1
+  }
+  if start > math.MaxInt64 / 10 {
+    start = math.MaxInt64 / 10
   }
   lastDecade := int64(0)
   primeCount := 0

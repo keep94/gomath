@@ -6,7 +6,7 @@ import (
 )
 
 // Harshads generates the harshad numbers in order that are greater than or
-// equal to start.
+// equal to start. Harshads stops generating when it reaches math.MaxInt64.
 func Harshads(ctx context.Context, start int64) <-chan int64 {
   if start < 1 {
     start = 1
