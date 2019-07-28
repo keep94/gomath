@@ -75,6 +75,22 @@ func checkInfInt64Chan(
   }
 }
 
+func checkInfBigIntChan(
+    t *testing.T, ch <-chan *big.Int, expectedValues ...int64) {
+  t.Helper()
+  for _, expected := range expectedValues {
+    actual, ok := <-ch
+    if !ok {
+        t.Fatal("No more values on channel")
+    }
+    if actual.Cmp(big.NewInt(expected)) != 0 {
+      t.Fatalf("Expected %v, got %v", expected, actual)
+    }
+    // Mutate returned value
+    actual.Set(big.NewInt(50))
+  }
+}
+
 func assertPP(t *testing.T, pp []gomath.PrimePower, factors ...int64) {
   t.Helper()
   if len(factors) % 2 != 0 {

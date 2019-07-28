@@ -12,7 +12,7 @@ func TestUgly(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
   uglies := gomath.Ugly(ctx, 2, 3, 5)
-  checkUglies(
+  checkInfBigIntChan(
       t,
       uglies,
       1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 25, 27,
@@ -32,7 +32,7 @@ func TestSingleFactor(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
   uglies := gomath.Ugly(ctx, 3)
-  checkUglies(
+  checkInfBigIntChan(
       t,
       uglies,
       1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049)
@@ -65,21 +65,5 @@ func TestContext(t *testing.T) {
   uglies := gomath.Ugly(ctx, 3, 5, 7)
   cancel()
   for _ = range uglies {
-  }
-}
-
-func checkUglies(
-    t *testing.T, uglies <-chan *big.Int, expectedValues ...int64) {
-  t.Helper()
-  for _, expected := range expectedValues {
-    actual, ok := <-uglies
-    if !ok {
-        t.Fatal("No more values on channel")
-    }
-    if actual.Cmp(big.NewInt(expected)) != 0 {
-      t.Fatalf("Expected %v, got %v", expected, actual)
-    }
-    // Mutate returned value
-    actual.Set(big.NewInt(50))
   }
 }
