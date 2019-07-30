@@ -32,9 +32,9 @@ func TestHarshadsMax(t *testing.T) {
 func TestNthHarshad(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
-  indexer := gomath.NewIntIndexer(gomath.Harshads(ctx, 0))
-  assertEqual(t, int64(100), indexer.Nth(33))
-  assertEqual(t, int64(372), indexer.Nth(100))
+  ch := gomath.NewIntChan(gomath.Harshads(ctx, 0))
+  assertEqual(t, int64(100), ch.Nth(33))
+  assertEqual(t, int64(372), ch.Nth(100))
 }
 
 func BenchmarkHarshads(b *testing.B) {

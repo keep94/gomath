@@ -2,7 +2,6 @@ package gomath_test
 
 import (
   "context"
-  "math/big"
   "testing"
 
   "github.com/keep94/gomath"
@@ -22,10 +21,9 @@ func TestUgly(t *testing.T) {
 func TestNthUgly(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   defer cancel()
-  indexer := gomath.NewBigIntIndexer(gomath.Ugly(ctx, 3, 5, 7))
-  result := new(big.Int)
-  assertBigIntEqual(t, 2401, indexer.Nth(50, result))
-  assertBigIntEqual(t, 33075, indexer.Nth(100, result))
+  ch := gomath.NewBigIntChan(gomath.Ugly(ctx, 3, 5, 7))
+  assertBigIntEqual(t, 2401, ch.Nth(50))
+  assertBigIntEqual(t, 33075, ch.Nth(100))
 }
 
 func TestSingleFactor(t *testing.T) {
