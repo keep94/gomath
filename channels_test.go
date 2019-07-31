@@ -1,6 +1,7 @@
 package gomath_test
 
 import (
+  "math"
   "math/big"
   "testing"
 
@@ -60,6 +61,33 @@ func TestIntSafeChan(t *testing.T) {
   assertPanic(t, func() {
     ch.Nth(10)
   })
+}
+
+func TestInvIntChanEmpty(t *testing.T) {
+  ch := make(chan int64)
+  close(ch)
+  empty := gomath.NewInvIntChan(ch)
+  assertEqual(t, int64(0), empty.InvNth(math.MinInt64))
+  assertEqual(t, int64(0), empty.InvNth(math.MaxInt64))
+}
+
+func TestInvIntChan(t *testing.T) {
+  ch := gomath.NewInvIntChan(upTo45By3Int())
+  assertEqual(t, int64(0), ch.InvNth(math.MinInt64))
+  assertEqual(t, int64(0), ch.InvNth(2))
+  assertEqual(t, int64(1), ch.InvNth(3))
+  assertEqual(t, int64(1), ch.InvNth(3))
+  assertPanic(t, func() {
+    ch.InvNth(2)
+  })
+  assertEqual(t, int64(1), ch.InvNth(5))
+  assertEqual(t, int64(2), ch.InvNth(6))
+  assertEqual(t, int64(5), ch.InvNth(17))
+  assertEqual(t, int64(5), ch.InvNth(17))
+  assertEqual(t, int64(6), ch.InvNth(18))
+  assertEqual(t, int64(14), ch.InvNth(43))
+  assertEqual(t, int64(15), ch.InvNth(46))
+  assertEqual(t, int64(15), ch.InvNth(100))
 }
 
 func upTo45By3() <-chan *big.Int {
