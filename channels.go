@@ -93,6 +93,49 @@ func (i *IntChan) SafeNth(n int64) (result int64, ok bool) {
   return
 }
 
+// InvBigIntChan wraps a <-chan *big.Int and finds how many values off that
+// channel are less than or equal to a particular value.
+// The values off the channel must be monotone increasing.
+// InvBigIntChan instances are not safe to use with multiple goroutines.
+type InvBigIntChan struct {
+  ch <-chan *big.Int
+  numTaken int64
+  lastTaken *big.Int
+  lastCall *big.Int
+}
+
+// NewInvBigIntChan returns an InvBigIntChan that wraps ch.
+func NewInvBigIntChan(ch <-chan *big.Int) *InvBigIntChan {
+  return &InvBigIntChan{
+      ch: ch,
+  }
+}
+
+// InvNth returns how many values off the wrapped channel are less than or
+// equal to value. InvNth panics if value is less than value in the previous
+// call to InvNth.
+func (b *InvBigIntChan) InvNth(value *big.Int) int64 {
+  if b.lastCall != nil && value.Cmp(b.lastCall) < 0 {
+    panic(kValueLessThanLastCall)
+  }
+  if b.lastCall == nil {
+    b.lastCall = new(big.Int)
+  }
+  b.lastCall.Set(value)
+  for b.lastTaken == nil || b.lastTaken.Cmp(value) <= 0 {
+    taken, ok := <-b.ch
+    if !ok {
+      break
+    }
+    b.lastTaken = taken
+    b.numTaken++
+  }
+  if b.lastTaken == nil || b.lastTaken.Cmp(value) <= 0 {
+    return b.numTaken
+  }
+  return b.numTaken - 1
+}
+
 // InvIntChan wraps a <-chan int64 and finds how many values off that
 // channel are less than or equal to a particular value.
 // The values off the channel must be monotone increasing.
