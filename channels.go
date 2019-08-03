@@ -98,7 +98,7 @@ func (i *IntChan) SafeNth(n int64) (result int64, ok bool) {
 // The values off the channel must be monotone increasing.
 // InvBigIntChan instances are not safe to use with multiple goroutines.
 type InvBigIntChan struct {
-  ch <-chan *big.Int
+  fn func(x int64) (*big.Int, bool)
   numTaken int64
   lastTaken *big.Int
   lastCall *big.Int
@@ -106,8 +106,25 @@ type InvBigIntChan struct {
 
 // NewInvBigIntChan returns an InvBigIntChan that wraps ch.
 func NewInvBigIntChan(ch <-chan *big.Int) *InvBigIntChan {
+  fn := func(x int64) (result *big.Int, ok bool) {
+    result, ok = <-ch
+    return
+  }
   return &InvBigIntChan{
-      ch: ch,
+      fn: fn,
+  }
+}
+
+// NewInvBigIntChanFromFunc returns an InvBigIntChan that wraps f.
+// Calling InvNth(value) on returned InvBigIntChan returns the largest
+// positive n such that f(n) <= value. If no such positive n exists,
+// InvNth(value) returns 0. f must be monotone increasing.
+func NewInvBigIntChanFromFunc(f func(x int64) *big.Int) *InvBigIntChan {
+  fn := func(x int64) (*big.Int, bool) {
+    return f(x), true
+  }
+  return &InvBigIntChan{
+      fn: fn,
   }
 }
 
@@ -123,7 +140,7 @@ func (b *InvBigIntChan) InvNth(value *big.Int) int64 {
   }
   b.lastCall.Set(value)
   for b.lastTaken == nil || b.lastTaken.Cmp(value) <= 0 {
-    taken, ok := <-b.ch
+    taken, ok := b.fn(b.numTaken + 1)
     if !ok {
       break
     }

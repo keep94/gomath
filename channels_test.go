@@ -100,6 +100,25 @@ func TestInvBigIntChan(t *testing.T) {
   assertEqual(t, int64(15), ch.InvNth(value.SetInt64(100)))
 }
 
+func TestInvBigIntChanFunc(t *testing.T) {
+  ch := gomath.NewInvBigIntChanFromFunc(gomath.NewPartition().Chart)
+  value := new(big.Int)
+  assertEqual(t, int64(0), ch.InvNth(value.SetInt64(math.MinInt64)))
+  assertEqual(t, int64(0), ch.InvNth(value.SetInt64(0)))
+  assertEqual(t, int64(1), ch.InvNth(value.SetInt64(1)))
+  assertEqual(t, int64(2), ch.InvNth(value.SetInt64(2)))
+  assertEqual(t, int64(3), ch.InvNth(value.SetInt64(3)))
+  assertEqual(t, int64(3), ch.InvNth(value.SetInt64(3)))
+  assertEqual(t, int64(3), ch.InvNth(value.SetInt64(4)))
+  assertEqual(t, int64(4), ch.InvNth(value.SetInt64(5)))
+  assertPanic(t, func() {
+    ch.InvNth(value.SetInt64(4))
+  })
+  assertEqual(t, int64(21), ch.InvNth(value.SetInt64(1001)))
+  assertEqual(t, int64(22), ch.InvNth(value.SetInt64(1002)))
+}
+
+
 func TestInvIntChan(t *testing.T) {
   ch := gomath.NewInvIntChan(upTo45By3Int())
   assertEqual(t, int64(0), ch.InvNth(math.MinInt64))
