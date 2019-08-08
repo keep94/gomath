@@ -45,6 +45,6 @@ func TestFibonacciContext(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   fib := gomath.Fibonacci(ctx, 1, 1)
   cancel()
-  for _ = range fib {
+  for range fib {
   }
 }

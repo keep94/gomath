@@ -55,6 +55,6 @@ func TestHarshadsContext(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   harshads := gomath.Harshads(ctx, 1)
   cancel()
-  for _ = range harshads {
+  for range harshads {
   }
 }

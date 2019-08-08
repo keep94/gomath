@@ -62,6 +62,6 @@ func TestContext(t *testing.T) {
   ctx, cancel := context.WithCancel(context.Background())
   uglies := gomath.Ugly(ctx, 3, 5, 7)
   cancel()
-  for _ = range uglies {
+  for range uglies {
   }
 }
