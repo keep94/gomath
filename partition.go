@@ -1,8 +1,29 @@
 package gomath
 
 import (
+  "context"
   "math/big"
 )
+
+// Partitions generates p(1), p(2), p(3), ... where p is the partition function.
+// See Partition.
+func Partitions(ctx context.Context) <-chan *big.Int {
+  result := make(chan *big.Int)
+  go func() {
+    defer close(result)
+    p := NewPartition()
+    i := 1
+    for {
+      select {
+        case <-ctx.Done():
+          return
+        case result <- p.Eval(i, new(big.Int)):
+      }
+      i++
+    }
+  }()
+  return result
+}
 
 // Partition computes the partition function, p, which calculates how many ways
 // n can be partitioned when order doesn't matter.
