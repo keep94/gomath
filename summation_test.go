@@ -24,3 +24,21 @@ func TestSummationContext(t *testing.T) {
   for range sumPrimes {
   }
 }
+
+func TestBigIntSummation(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  defer cancel()
+  sumPartitions := gomath.BigIntSummation(ctx, gomath.Partitions(ctx))
+  checkInfBigIntChan(
+      t,
+      sumPartitions,
+      1, 3, 6, 11, 18, 29, 44, 66, 96, 138, 194, 271, 372)
+}
+
+func TestBigIntSummationContext(t *testing.T) {
+  ctx, cancel := context.WithCancel(context.Background())
+  sumPartitions := gomath.BigIntSummation(ctx, gomath.Partitions(ctx))
+  cancel()
+  for range sumPartitions {
+  }
+}
