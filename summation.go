@@ -5,9 +5,9 @@ import (
   "math/big"
 )
 
-// Summation generates the summation of the values in ch. For example if
-// ch generates the primes, Summation would generate 2, 5, 10, 17, ...
-func Summation(ctx context.Context, ch <-chan int64) <-chan int64 {
+// IntSummation generates the summation of the values in ch. For example if
+// ch generates the primes, IntSummation would generate 2, 5, 10, 17, ...
+func IntSummation(ctx context.Context, ch <-chan int64) <-chan int64 {
   result := make(chan int64)
   go func() {
     defer close(result)
