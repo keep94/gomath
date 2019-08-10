@@ -9,10 +9,10 @@ import (
 // first and second terms in the sequence, normally 1 and 1. 
 func Fibonacci(ctx context.Context, first, second int64) <-chan *big.Int {
   result := make(chan *big.Int)
-  a := big.NewInt(first)
-  b := big.NewInt(second)
   go func() {
     defer close(result)
+    a := big.NewInt(first)
+    b := big.NewInt(second)
     for {
       select {
         case <-ctx.Done():

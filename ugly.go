@@ -11,6 +11,9 @@ import (
 func Ugly(ctx context.Context, primeFactors ...int64) <-chan *big.Int {
   checkPrimeFactors(primeFactors)
   result := make(chan *big.Int)
+
+  // We do our initialization here instead of in the goroutine because
+  // caller can change primeFactors once we return.
   valueEntryTail := &valueEntry{value: big.NewInt(1)}
   var hp factorPointerHeap
   createFactorPointersOnHeap(primeFactors, valueEntryTail, &hp)

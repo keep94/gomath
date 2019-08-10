@@ -11,10 +11,10 @@ func Harshads(ctx context.Context, start int64) <-chan int64 {
   if start < 1 {
     start = 1
   }
-  sum := sumDigits(start)
   result := make(chan int64)
   go func() {
     defer close(result)
+    sum := sumDigits(start)
     for {
       if start % sum == 0 {
         select {
