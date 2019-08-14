@@ -63,60 +63,51 @@ func TestIntSafeChan(t *testing.T) {
   })
 }
 
-func TestInvBigIntChanEmpty(t *testing.T) {
-  ch := make(chan *big.Int)
-  close(ch)
-  empty := gomath.NewInvBigIntChan(ch)
-  value := new(big.Int)
-  assertEqual(t, int64(0), empty.InvNth(value.SetInt64(math.MinInt64)))
-  assertEqual(t, int64(0), empty.InvNth(value.SetInt64(math.MaxInt64)))
-}
-
-func TestInvIntChanEmpty(t *testing.T) {
-  ch := make(chan int64)
-  close(ch)
-  empty := gomath.NewInvIntChan(ch)
-  assertEqual(t, int64(0), empty.InvNth(math.MinInt64))
-  assertEqual(t, int64(0), empty.InvNth(math.MaxInt64))
-}
-
-func TestInvBigIntChan(t *testing.T) {
-  ch := gomath.NewInvBigIntChan(upTo45By3())
-  value := new(big.Int)
-  assertEqual(t, int64(0), ch.InvNth(value.SetInt64(math.MinInt64)))
-  assertEqual(t, int64(0), ch.InvNth(value.SetInt64(2)))
-  assertEqual(t, int64(1), ch.InvNth(value.SetInt64(3)))
-  assertEqual(t, int64(1), ch.InvNth(value.SetInt64(3)))
-  assertPanic(t, func() {
-    ch.InvNth(value.SetInt64(2))
+func TestBigIntCounter(t *testing.T) {
+  counter := gomath.NewBigIntCounter(func(x int64) *big.Int {
+    return big.NewInt(3*x)
   })
-  assertEqual(t, int64(1), ch.InvNth(value.SetInt64(5)))
-  assertEqual(t, int64(2), ch.InvNth(value.SetInt64(6)))
-  assertEqual(t, int64(5), ch.InvNth(value.SetInt64(17)))
-  assertEqual(t, int64(5), ch.InvNth(value.SetInt64(17)))
-  assertEqual(t, int64(6), ch.InvNth(value.SetInt64(18)))
-  assertEqual(t, int64(14), ch.InvNth(value.SetInt64(44)))
-  assertEqual(t, int64(15), ch.InvNth(value.SetInt64(45)))
-  assertEqual(t, int64(15), ch.InvNth(value.SetInt64(100)))
+  value := new(big.Int)
+  assertEqual(t, int64(0), counter.CountLE(value.SetInt64(math.MinInt64)))
+  assertEqual(t, int64(0), counter.CountLE(value.SetInt64(2)))
+  assertEqual(t, int64(1), counter.CountLE(value.SetInt64(3)))
+  assertEqual(t, int64(1), counter.CountLE(value.SetInt64(3)))
+  assertPanic(t, func() {
+    counter.CountLE(value.SetInt64(2))
+  })
+  assertEqual(t, int64(1), counter.CountLE(value.SetInt64(5)))
+  assertEqual(t, int64(2), counter.CountLE(value.SetInt64(6)))
+  assertEqual(t, int64(5), counter.CountLE(value.SetInt64(17)))
+  assertEqual(t, int64(5), counter.CountLE(value.SetInt64(17)))
+  assertEqual(t, int64(6), counter.CountLE(value.SetInt64(18)))
+  assertEqual(t, int64(14), counter.CountLE(value.SetInt64(44)))
+  assertEqual(t, int64(15), counter.CountLE(value.SetInt64(45)))
+  assertEqual(t, int64(33), counter.CountLE(value.SetInt64(100)))
 }
 
-func TestInvIntChan(t *testing.T) {
-  ch := gomath.NewInvIntChan(upTo45By3Int())
-  assertEqual(t, int64(0), ch.InvNth(math.MinInt64))
-  assertEqual(t, int64(0), ch.InvNth(2))
-  assertEqual(t, int64(1), ch.InvNth(3))
-  assertEqual(t, int64(1), ch.InvNth(3))
-  assertPanic(t, func() {
-    ch.InvNth(2)
+func TestIntCounter(t *testing.T) {
+  counter := gomath.NewIntCounter(func(x int64) int64 {
+    if x <= 15 {
+      return 3*x
+    }
+    return math.MaxInt64
   })
-  assertEqual(t, int64(1), ch.InvNth(5))
-  assertEqual(t, int64(2), ch.InvNth(6))
-  assertEqual(t, int64(5), ch.InvNth(17))
-  assertEqual(t, int64(5), ch.InvNth(17))
-  assertEqual(t, int64(6), ch.InvNth(18))
-  assertEqual(t, int64(14), ch.InvNth(44))
-  assertEqual(t, int64(15), ch.InvNth(45))
-  assertEqual(t, int64(15), ch.InvNth(100))
+  assertEqual(t, int64(0), counter.CountLE(math.MinInt64))
+  assertEqual(t, int64(0), counter.CountLE(2))
+  assertEqual(t, int64(1), counter.CountLE(3))
+  assertEqual(t, int64(1), counter.CountLE(3))
+  assertPanic(t, func() {
+    counter.CountLE(2)
+  })
+  assertEqual(t, int64(1), counter.CountLE(5))
+  assertEqual(t, int64(2), counter.CountLE(6))
+  assertEqual(t, int64(5), counter.CountLE(17))
+  assertEqual(t, int64(5), counter.CountLE(17))
+  assertEqual(t, int64(6), counter.CountLE(18))
+  assertEqual(t, int64(14), counter.CountLE(44))
+  assertEqual(t, int64(15), counter.CountLE(45))
+  assertEqual(t, int64(15), counter.CountLE(100))
+  assertEqual(t, int64(16), counter.CountLE(math.MaxInt64))
 }
 
 func upTo45By3() <-chan *big.Int {

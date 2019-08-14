@@ -93,28 +93,30 @@ func (i *IntChan) SafeNth(n int64) (result int64, ok bool) {
   return
 }
 
-// InvBigIntChan wraps a <-chan *big.Int and finds how many values off that
-// channel are less than or equal to a particular value.
-// The values off the channel must be monotone increasing.
-// InvBigIntChan instances are not safe to use with multiple goroutines.
-type InvBigIntChan struct {
-  ch <-chan *big.Int
+// BigIntCounter counts how many f(1), f(2), f(3),... are less than a given
+// value. f must be monotone increasing. BigIntCounter will evaluate f(x)
+// at most once. If y < x, BigIntCounter evaluates f(y) before it evaluates
+// f(x).
+type BigIntCounter struct {
+  f func(int64) *big.Int
   numTaken int64
   lastTaken *big.Int
   lastCall *big.Int
 }
 
-// NewInvBigIntChan returns an InvBigIntChan that wraps ch.
-func NewInvBigIntChan(ch <-chan *big.Int) *InvBigIntChan {
-  return &InvBigIntChan{
-      ch: ch,
+// NewBigIntCounter returns a BigIntCounter that wraps f.
+func NewBigIntCounter(f func(int64) *big.Int) *BigIntCounter {
+  return &BigIntCounter{
+      f: f,
+      numTaken: 1,
+      lastTaken: f(1),
   }
 }
 
-// InvNth returns how many values off the wrapped channel are less than or
-// equal to value. InvNth panics if value is less than value in the previous
-// call to InvNth.
-func (b *InvBigIntChan) InvNth(value *big.Int) int64 {
+// CountLE returns how many f(1), f(2), f(3), ... are less than or equal to
+// value. CountLE panics if value is less than value in the previous
+// call to CountLE.
+func (b *BigIntCounter) CountLE(value *big.Int) int64 {
   if b.lastCall != nil && value.Cmp(b.lastCall) < 0 {
     panic(kValueLessThanLastCall)
   }
@@ -122,57 +124,50 @@ func (b *InvBigIntChan) InvNth(value *big.Int) int64 {
     b.lastCall = new(big.Int)
   }
   b.lastCall.Set(value)
-  for b.lastTaken == nil || b.lastTaken.Cmp(value) <= 0 {
-    taken, ok := <-b.ch
-    if !ok {
-      break
-    }
-    b.lastTaken = taken
+  for b.lastTaken.Cmp(value) < 0 {
     b.numTaken++
+    b.lastTaken = b.f(b.numTaken)
   }
-  if b.lastTaken == nil || b.lastTaken.Cmp(value) <= 0 {
+  if b.lastTaken.Cmp(value) == 0 {
     return b.numTaken
   }
   return b.numTaken - 1
 }
 
-// InvIntChan wraps a <-chan int64 and finds how many values off that
-// channel are less than or equal to a particular value.
-// The values off the channel must be monotone increasing.
-// InvIntChan instances are not safe to use with multiple goroutines.
-type InvIntChan struct {
-  ch <-chan int64
+// IntCounter counts how many f(1), f(2), f(3),... are less than a given
+// value. f must be monotone increasing. IntCounter will evaluate f(x)
+// at most once. If y < x, IntCounter evaluates f(y) before it evaluates
+// f(x).
+type IntCounter struct {
+  f func(int64) int64
   numTaken int64
   lastTaken int64
   lastCall int64
 }
 
-// NewInvIntChan returns an InvIntChan that wraps ch.
-func NewInvIntChan(ch <-chan int64) *InvIntChan {
-  return &InvIntChan{
-      ch: ch,
-      lastTaken: math.MinInt64,
+// NewIntCounter returns an IntCounter that wraps f.
+func NewIntCounter(f func(int64) int64) *IntCounter {
+  return &IntCounter{
+      f: f,
+      numTaken: 1,
+      lastTaken: f(1),
       lastCall: math.MinInt64,
   }
 }
 
-// InvNth returns how many values off the wrapped channel are less than or
-// equal to value. InvNth panics if value is less than value in the previous
-// call to InvNth.
-func (i *InvIntChan) InvNth(value int64) int64 {
+// CountLE returns how many f(1), f(2), f(3), ... are less than or equal to
+// value. CountLE panics if value is less than value in the previous
+// call to CountLE.
+func (i *IntCounter) CountLE(value int64) int64 {
   if value < i.lastCall {
     panic(kValueLessThanLastCall)
   }
   i.lastCall = value
-  for i.lastTaken <= value {
-    taken, ok := <-i.ch
-    if !ok {
-      break
-    }
-    i.lastTaken = taken
+  for i.lastTaken < value {
     i.numTaken++
+    i.lastTaken = i.f(i.numTaken)
   }
-  if i.lastTaken <= value {
+  if i.lastTaken == value {
     return i.numTaken
   }
   return i.numTaken - 1
