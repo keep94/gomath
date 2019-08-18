@@ -21,13 +21,17 @@ func Inverse(
   }
   step := (upper - lower) / 2.0
   result := (upper + lower) / 2.0
-  for i := 0; i < 53; i++ {
+  for {
     step /= 2.0
+    var nextResult float64
     if g(result) > 0.0 {
-      result -= step
+      nextResult = result - step
     } else {
-      result += step
+      nextResult = result + step
     }
+    if nextResult == result {
+      return result
+    }
+    result = nextResult
   }
-  return result
 }
