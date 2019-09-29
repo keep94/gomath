@@ -1,7 +1,6 @@
 package gomath_test
 
 import (
-  "context"
   "math"
   "testing"
 
@@ -9,10 +8,8 @@ import (
 )
 
 func TestHappys(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  happys := gomath.Happys(ctx, 100)
-  checkInfInt64Chan(
+  happys := gomath.Happys(100)
+  checkInfInt64Stream(
       t,
       happys,
       100, 103, 109, 129, 130, 133, 139, 167, 176, 188)
@@ -20,43 +17,28 @@ func TestHappys(t *testing.T) {
 
 func TestHappysMax(t *testing.T) {
   start := int64(math.MaxInt64 - 1000)
-  happys := gomath.Happys(context.Background(), start)
+  happys := gomath.Happys(start)
   found := false
-  for h := range happys {
-    assertTrue(t, h >= start)
+  happy, ok := happys.Next()
+  for ; ok; happy, ok = happys.Next() {
+    assertTrue(t, happy >= start)
     found = true
   }
   assertTrue(t, found)
 }
 
 func TestNthHappy(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  ch := gomath.NewIntChan(gomath.Happys(ctx, 0))
-  assertEqual(t, int64(100), ch.Nth(20))
-  assertEqual(t, int64(694), ch.Nth(100))
-  assertEqual(t, int64(6899), ch.Nth(1000))
-  assertEqual(t, int64(67169), ch.Nth(10000))
+  nth := gomath.NewNthInt(gomath.Happys(0))
+  assertEqual(t, int64(100), nth.Nth(20))
+  assertEqual(t, int64(694), nth.Nth(100))
+  assertEqual(t, int64(6899), nth.Nth(1000))
+  assertEqual(t, int64(67169), nth.Nth(10000))
 }
 
 func BenchmarkHappys(b *testing.B) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  happys := gomath.Happys(ctx, 1)
-  i := 0
+  happys := gomath.Happys(1)
   b.ResetTimer()
-  for range happys {
-    i++
-    if i == b.N {
-      break
-    }
-  }
-}
-
-func TestHappysContext(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  happys := gomath.Happys(ctx, 1)
-  cancel()
-  for range happys {
+  for i := 0; i < b.N; i++ {
+    happys.Next()
   }
 }

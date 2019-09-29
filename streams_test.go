@@ -8,65 +8,61 @@ import (
   "github.com/keep94/gomath"
 )
 
-func TestBigIntChan(t *testing.T) {
-  ch := gomath.NewBigIntChan(upTo45By3())
+func TestNthBigInt(t *testing.T) {
+  nth := gomath.NewNthBigInt(newUpBy3Stream())
+  value := new(big.Int)
   assertPanic(t, func() {
-    ch.Nth(0)
+    nth.Nth(0, value)
   })
-  assertBigIntEqual(t, 6, ch.Nth(2))
+  assertBigIntEqual(t, 6, nth.Nth(2, value))
   assertPanic(t, func() {
-    ch.Nth(2)
+    nth.Nth(2, value)
   })
-  assertBigIntEqual(t, 45, ch.Nth(15))
+  assertBigIntEqual(t, 45, nth.Nth(15, value))
   assertPanic(t, func() {
-    ch.Nth(16)
-  })
-  assertPanic(t, func() {
-    ch.Nth(10)
+    nth.Nth(10, value)
   })
 }
 
-func TestIntChan(t *testing.T) {
-  ch := gomath.NewIntChan(upTo45By3Int())
+func TestNthInt(t *testing.T) {
+  nth := gomath.NewNthInt(newUpTo45By3Stream())
   assertPanic(t, func() {
-    ch.Nth(0)
+    nth.Nth(0)
   })
-  assertEqual(t, int64(6), ch.Nth(2))
+  assertEqual(t, int64(6), nth.Nth(2))
   assertPanic(t, func() {
-    ch.Nth(2)
+    nth.Nth(2)
   })
-  assertEqual(t, int64(45), ch.Nth(15))
+  assertEqual(t, int64(45), nth.Nth(15))
   assertPanic(t, func() {
-    ch.Nth(16)
+    nth.Nth(16)
   })
   assertPanic(t, func() {
-    ch.Nth(10)
+    nth.Nth(10)
   })
 }
 
-func TestIntSafeChan(t *testing.T) {
-  ch := gomath.NewIntChan(upTo45By3Int())
+func TestNthIntSafe(t *testing.T) {
+  nth := gomath.NewNthInt(newUpTo45By3Stream())
   assertPanic(t, func() {
-    ch.SafeNth(0)
+    nth.SafeNth(0)
   })
-  result, ok := ch.SafeNth(2)
+  result, ok := nth.SafeNth(2)
   assertTrue(t, ok)
   assertEqual(t, int64(6), result)
   assertPanic(t, func() {
-    ch.SafeNth(2)
+    nth.SafeNth(2)
   })
-  result, ok = ch.SafeNth(16)
+  result, ok = nth.SafeNth(16)
   assertTrue(t, !ok)
   assertEqual(t, int64(0), result)
   assertPanic(t, func() {
-    ch.Nth(10)
+    nth.Nth(10)
   })
 }
 
 func TestBigIntCounter(t *testing.T) {
-  counter := gomath.NewBigIntCounter(func(x int64) *big.Int {
-    return big.NewInt(3*x)
-  })
+  counter := gomath.NewBigIntCounter(newUpBy3Stream())
   value := new(big.Int)
   assertEqual(t, int64(0), counter.CountLE(value.SetInt64(math.MinInt64)))
   assertEqual(t, int64(0), counter.CountLE(value.SetInt64(2)))
@@ -86,12 +82,7 @@ func TestBigIntCounter(t *testing.T) {
 }
 
 func TestIntCounter(t *testing.T) {
-  counter := gomath.NewIntCounter(func(x int64) int64 {
-    if x <= 15 {
-      return 3*x
-    }
-    return math.MaxInt64
-  })
+  counter := gomath.NewIntCounter(newUpTo45By3Stream())
   assertEqual(t, int64(0), counter.CountLE(math.MinInt64))
   assertEqual(t, int64(0), counter.CountLE(2))
   assertEqual(t, int64(1), counter.CountLE(3))
@@ -99,6 +90,7 @@ func TestIntCounter(t *testing.T) {
   assertPanic(t, func() {
     counter.CountLE(2)
   })
+  assertEqual(t, int64(1), counter.CountLE(4))
   assertEqual(t, int64(1), counter.CountLE(5))
   assertEqual(t, int64(2), counter.CountLE(6))
   assertEqual(t, int64(5), counter.CountLE(17))
@@ -107,27 +99,53 @@ func TestIntCounter(t *testing.T) {
   assertEqual(t, int64(14), counter.CountLE(44))
   assertEqual(t, int64(15), counter.CountLE(45))
   assertEqual(t, int64(15), counter.CountLE(100))
-  assertEqual(t, int64(16), counter.CountLE(math.MaxInt64))
+  assertEqual(t, int64(15), counter.CountLE(math.MaxInt64))
 }
 
-func upTo45By3() <-chan *big.Int {
-  result := make(chan *big.Int)
-  go func() {
-    defer close(result)
-    for i := 1; i <= 15; i++ {
-      result <- big.NewInt(3*int64(i))
-    }
-  }()
-  return result
+func TestIntCounterEmptyStream(t *testing.T) {
+  counter := gomath.NewIntCounter(newEmptyStream())
+  assertEqual(t, int64(0), counter.CountLE(math.MinInt64))
+  assertEqual(t, int64(0), counter.CountLE(math.MaxInt64))
 }
 
-func upTo45By3Int() <-chan int64 {
-  result := make(chan int64)
-  go func() {
-    defer close(result)
-    for i := int64(1); i <= 15; i++ {
-      result <- 3*i
-    }
-  }()
-  return result
+type linearBigIntStream struct {
+  currentValue *big.Int
+  incrValue *big.Int
 }
+
+func newUpBy3Stream() gomath.BigIntStream {
+  return &linearBigIntStream{currentValue: big.NewInt(3), incrValue: big.NewInt(3)}
+}
+
+func (s *linearBigIntStream) Next(value *big.Int) *big.Int {
+  if value != nil {
+    value.Set(s.currentValue)
+  }
+  s.currentValue.Add(s.currentValue, s.incrValue)
+  return value
+}
+
+type linearIntStream struct {
+  currentValue int64
+  incrValue int64
+  maxValue int64
+}
+
+func newUpTo45By3Stream() gomath.IntStream {
+  return &linearIntStream{currentValue: 3, incrValue: 3, maxValue: 45}
+}
+
+func newEmptyStream() gomath.IntStream {
+  return &linearIntStream{currentValue: 3, incrValue: 3, maxValue: 2}
+}
+
+func (s *linearIntStream) Next() (result int64, ok bool) {
+  if s.currentValue > s.maxValue {
+    return
+  }
+  result = s.currentValue
+  ok = true
+  s.currentValue += s.incrValue
+  return
+}
+

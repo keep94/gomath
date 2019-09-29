@@ -1,46 +1,50 @@
 package gomath
 
 import (
-  "context"
   "math/big"
 )
 
-// IntSummation generates the summation of the values in ch. For example if
-// ch generates the primes, IntSummation would generate 2, 5, 10, 17, ...
-func IntSummation(ctx context.Context, ch <-chan int64) <-chan int64 {
-  result := make(chan int64)
-  go func() {
-    defer close(result)
-    var sum int64
-    for i := range ch {
-      sum += i
-      select {
-        case <-ctx.Done():
-          return
-        case result <- sum:
-      }
-    }
-  }()
-  return result
+// IntSummation generates the summation of the values in stream. For example if
+// stream generates the primes, IntSummation would generate 2, 5, 10, 17, ...
+func IntSummation(stream IntStream) IntStream {
+  return &intSumStream{stream: stream}
 }
 
-// BigIntSummation generates the summation of the values in ch.
-// For example if ch generates the primes, BigIntSummation would
+// BigIntSummation generates the summation of the values in stream.
+// For example if stream generates the primes, BigIntSummation would
 // generate 2, 5, 10, 17, ...
-func BigIntSummation(
-    ctx context.Context, ch <-chan *big.Int) <-chan *big.Int {
-  result := make(chan *big.Int)
-  go func() {
-    defer close(result)
-    sum := new(big.Int)
-    for b := range ch {
-      sum.Add(sum, b)
-      select {
-        case <-ctx.Done():
-          return
-        case result <- new(big.Int).Set(sum):
-      }
-    }
-  }()
-  return result
+func BigIntSummation(stream BigIntStream) BigIntStream {
+  return &bigIntSumStream{
+      stream: stream, nextVal: new(big.Int), sum: new(big.Int)}
+}
+
+type intSumStream struct {
+  stream IntStream
+  sum int64
+}
+
+func (s *intSumStream) Next() (result int64, ok bool) {
+  value, vok := s.stream.Next()
+  if !vok {
+    return
+  }
+  s.sum += value
+  result = s.sum
+  ok = true
+  return
+}
+
+type bigIntSumStream struct {
+  stream BigIntStream
+  nextVal *big.Int
+  sum *big.Int
+}
+
+func (s *bigIntSumStream) Next(value *big.Int) *big.Int {
+  s.stream.Next(s.nextVal)
+  s.sum.Add(s.sum, s.nextVal)
+  if value != nil {
+    value.Set(s.sum)
+  }
+  return value
 }

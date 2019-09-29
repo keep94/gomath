@@ -1,35 +1,32 @@
 package gomath
 
-import (
-  "context"
-  "math"
-)
-
 // Happys generates all the happy numbers in order that are greater than or
 // equal to start.
-func Happys(ctx context.Context, start int64) <-chan int64 {
+func Happys(start int64) IntStream {
   if start < 1 {
     start = 1
   }
-  result := make(chan int64)
-  go func() {
-    defer close(result)
-    he := newHappyEngine()
-    for {
-      if he.isHappy(start) {
-        select {
-          case <-ctx.Done():
-            return
-          case result <- start:
-        }
-      }
-      if start == math.MaxInt64 {
-        return
-      }
-      start++
+  return &happyStream{start: start, he: newHappyEngine()}
+}
+
+type happyStream struct {
+  start int64
+  he *happyEngine
+}
+
+func (h *happyStream) Next() (result int64, ok bool) {
+  for {
+    if h.start < 0 {
+      return
     }
-  }()
-  return result
+    if h.he.isHappy(h.start) {
+      result = h.start
+      ok = true
+      h.start++
+      return
+    }
+    h.start++
+  }
 }
 
 type happyStatus uint8

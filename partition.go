@@ -1,28 +1,13 @@
 package gomath
 
 import (
-  "context"
   "math/big"
 )
 
 // Partitions generates p(1), p(2), p(3), ... where p is the partition function.
 // See Partition.
-func Partitions(ctx context.Context) <-chan *big.Int {
-  result := make(chan *big.Int)
-  go func() {
-    defer close(result)
-    p := NewPartition()
-    i := 1
-    for {
-      select {
-        case <-ctx.Done():
-          return
-        case result <- p.Eval(i, new(big.Int)):
-      }
-      i++
-    }
-  }()
-  return result
+func Partitions() BigIntStream {
+  return &partitionStream{current: 1, partition: NewPartition()}
 }
 
 // Partition computes the partition function, p, which calculates how many ways
@@ -61,9 +46,9 @@ func (p *Partition) Eval(n int, result *big.Int) *big.Int {
 
 // Chart is used to make a chart of the partition function using the
 // github.com/keep94/gochart package.
-// p.Chart(n) is the same as p.Eval(int(n), new(big.Int))
-func (p *Partition) Chart(n int64) *big.Int {
-  return p.Eval(int(n), new(big.Int))
+// p.Chart(n, result) is the same as p.Eval(int(n), result)
+func (p *Partition) Chart(n int64, result *big.Int) *big.Int {
+  return p.Eval(int(n), result)
 }
 
 func (p *Partition) evalNext() {
@@ -88,4 +73,17 @@ func (p *Partition) evalNext() {
     smallDec += 1
   }
   p.values = append(p.values, sum)
+}
+
+type partitionStream struct {
+  current int
+  partition *Partition
+}
+
+func (p *partitionStream) Next(value *big.Int) *big.Int {
+  if value != nil {
+    p.partition.Eval(p.current, value)
+  }
+  p.current++
+  return value
 }

@@ -1,42 +1,39 @@
 package gomath
 
 import (
-  "context"
   "container/heap"
   "math/big"
 )
 
 // Ugly returns the numbers whose prime factors are a subset of primeFactors
 // in ascending order.
-func Ugly(ctx context.Context, primeFactors ...int64) <-chan *big.Int {
+func Ugly(primeFactors ...int64) BigIntStream {
   checkPrimeFactors(primeFactors)
-  result := make(chan *big.Int)
-
-  // We do our initialization here instead of in the goroutine because
-  // caller can change primeFactors once we return.
-  valueEntryTail := &valueEntry{value: big.NewInt(1)}
-  var hp factorPointerHeap
-  createFactorPointersOnHeap(primeFactors, valueEntryTail, &hp)
-  go func() {
-    defer close(result)
-    for {
-      select {
-        case <-ctx.Done():
-          return
-        case result <- new(big.Int).Set(valueEntryTail.value):
-      }
-      fp := heap.Pop(&hp).(*factorPointer)
-      for fp.effectiveValue.Cmp(valueEntryTail.value) == 0 {
-        fp.advance()
-        heap.Push(&hp, fp)
-        fp = heap.Pop(&hp).(*factorPointer)
-      }
-      valueEntryTail = fp.appendEffectiveValue(valueEntryTail)
-      fp.advance()
-      heap.Push(&hp, fp)
-    }
-  }()
+  result := &uglyStream{}
+  result.tail = &valueEntry{value: big.NewInt(1)}
+  createFactorPointersOnHeap(primeFactors, result.tail, &result.hp)
   return result
+}
+
+type uglyStream struct {
+  tail *valueEntry
+  hp factorPointerHeap
+}
+
+func (u *uglyStream) Next(value *big.Int) *big.Int {
+  if value != nil {
+    value.Set(u.tail.value)
+  }
+  fp := heap.Pop(&u.hp).(*factorPointer)
+  for fp.effectiveValue.Cmp(u.tail.value) == 0 {
+    fp.advance()
+    heap.Push(&u.hp, fp)
+    fp = heap.Pop(&u.hp).(*factorPointer)
+  }
+  u.tail = fp.appendEffectiveValue(u.tail)
+  fp.advance()
+  heap.Push(&u.hp, fp)
+  return value
 }
 
 // Ugly works by keeping a linked list of valueEntry instances arranged in 

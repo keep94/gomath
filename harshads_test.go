@@ -1,7 +1,6 @@
 package gomath_test
 
 import (
-  "context"
   "math"
   "testing"
 
@@ -9,10 +8,8 @@ import (
 )
 
 func TestHarshads(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  harshads := gomath.Harshads(ctx, 90)
-  checkInfInt64Chan(
+  harshads := gomath.Harshads(90)
+  checkInfInt64Stream(
       t,
       harshads,
       90, 100, 102, 108, 110, 111, 112, 114, 117, 120)
@@ -20,41 +17,26 @@ func TestHarshads(t *testing.T) {
 
 func TestHarshadsMax(t *testing.T) {
   start := int64(math.MaxInt64 - 1000)
-  harshads := gomath.Harshads(context.Background(), start)
+  harshads := gomath.Harshads(start)
   found := false
-  for h := range harshads {
-    assertTrue(t, h >= start)
+  harshad, ok := harshads.Next()
+  for ; ok; harshad, ok = harshads.Next() {
+    assertTrue(t, harshad >= start)
     found = true
   }
   assertTrue(t, found)
 }
 
 func TestNthHarshad(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  ch := gomath.NewIntChan(gomath.Harshads(ctx, 0))
-  assertEqual(t, int64(100), ch.Nth(33))
-  assertEqual(t, int64(372), ch.Nth(100))
+  nth := gomath.NewNthInt(gomath.Harshads(0))
+  assertEqual(t, int64(100), nth.Nth(33))
+  assertEqual(t, int64(372), nth.Nth(100))
 }
 
 func BenchmarkHarshads(b *testing.B) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  harshads := gomath.Harshads(ctx, 1)
-  i := 0
+  harshads := gomath.Harshads(1)
   b.ResetTimer()
-  for range harshads {
-    i++
-    if i == b.N {
-      break
-    }
-  }
-}
-    
-func TestHarshadsContext(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  harshads := gomath.Harshads(ctx, 1)
-  cancel()
-  for range harshads {
+  for i := 0; i < b.N; i++ {
+    harshads.Next()
   }
 }

@@ -1,27 +1,25 @@
 package gomath
 
 import (
-  "context"
   "math/big"
 )
 
 // Fibonacci generates fibonacci numbers. first and second are the
 // first and second terms in the sequence, normally 1 and 1. 
-func Fibonacci(ctx context.Context, first, second int64) <-chan *big.Int {
-  result := make(chan *big.Int)
-  go func() {
-    defer close(result)
-    a := big.NewInt(first)
-    b := big.NewInt(second)
-    for {
-      select {
-        case <-ctx.Done():
-          return
-        case result <- new(big.Int).Set(a):
-      }
-      a.Add(a, b)
-      a, b = b, a
-    }
-  }()
-  return result
+func Fibonacci(first, second int64) BigIntStream {
+  return &fibStream{a: big.NewInt(first), b: big.NewInt(second)}
+}
+
+type fibStream struct {
+  a *big.Int
+  b *big.Int
+}
+
+func (f *fibStream) Next(value *big.Int) *big.Int {
+  if value != nil {
+    value.Set(f.a)
+  }
+  f.a.Add(f.a, f.b)
+  f.a, f.b = f.b, f.a
+  return value
 }

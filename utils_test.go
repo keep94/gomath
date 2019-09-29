@@ -61,13 +61,13 @@ func assertEqual(
   }
 }
 
-func checkInfInt64Chan(
-    t *testing.T, ch <-chan int64, expectedValues ...int64) {
+func checkInfInt64Stream(
+    t *testing.T, stream gomath.IntStream, expectedValues ...int64) {
   t.Helper()
   for _, expected := range expectedValues {
-    actual, ok := <-ch
+    actual, ok := stream.Next()
     if !ok {
-        t.Fatal("No more values on channel")
+        t.Fatal("No more values on stream")
     }
     if actual != expected {
       t.Fatalf("Expected %v, got %v", expected, actual)
@@ -75,20 +75,17 @@ func checkInfInt64Chan(
   }
 }
 
-func checkInfBigIntChan(
-    t *testing.T, ch <-chan *big.Int, expectedValues ...int64) {
+func checkInfBigIntStream(
+    t *testing.T, stream gomath.BigIntStream, expectedValues ...int64) {
   t.Helper()
+  actual := new(big.Int)
   for _, expected := range expectedValues {
-    actual, ok := <-ch
-    if !ok {
-        t.Fatal("No more values on channel")
-    }
+    stream.Next(actual)
     if actual.Cmp(big.NewInt(expected)) != 0 {
       t.Fatalf("Expected %v, got %v", expected, actual)
     }
-    // Mutate returned value
-    actual.Set(big.NewInt(50))
   }
+  stream.Next(nil)
 }
 
 func assertPP(t *testing.T, pp []gomath.PrimePower, factors ...int64) {

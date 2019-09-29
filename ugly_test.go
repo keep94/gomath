@@ -1,17 +1,15 @@
 package gomath_test
 
 import (
-  "context"
+  "math/big"
   "testing"
 
   "github.com/keep94/gomath"
 )
 
 func TestUgly(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  uglies := gomath.Ugly(ctx, 2, 3, 5)
-  checkInfBigIntChan(
+  uglies := gomath.Ugly(2, 3, 5)
+  checkInfBigIntStream(
       t,
       uglies,
       1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24, 25, 27,
@@ -19,18 +17,15 @@ func TestUgly(t *testing.T) {
 }
 
 func TestNthUgly(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  ch := gomath.NewBigIntChan(gomath.Ugly(ctx, 3, 5, 7))
-  assertBigIntEqual(t, 2401, ch.Nth(50))
-  assertBigIntEqual(t, 33075, ch.Nth(100))
+  nth := gomath.NewNthBigInt(gomath.Ugly(3, 5, 7))
+  value := new(big.Int)
+  assertBigIntEqual(t, 2401, nth.Nth(50, value))
+  assertBigIntEqual(t, 33075, nth.Nth(100, value))
 }
 
 func TestSingleFactor(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  uglies := gomath.Ugly(ctx, 3)
-  checkInfBigIntChan(
+  uglies := gomath.Ugly(3)
+  checkInfBigIntStream(
       t,
       uglies,
       1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049)
@@ -40,28 +35,15 @@ func TestPanic(t *testing.T) {
   assertPanic(
       t,
       func() {
-        gomath.Ugly(context.Background(), 1, 2, 3)
+        gomath.Ugly(1, 2, 3)
       })
 }
 
 func BenchmarkUgly(b *testing.B) {
-  ctx, cancel := context.WithCancel(context.Background())
-  defer cancel()
-  uglies := gomath.Ugly(ctx, 2, 3, 5)
-  i := 0
+  uglies := gomath.Ugly(2, 3, 5)
+  value := new(big.Int)
   b.ResetTimer()
-  for range uglies {
-    i++
-    if i == b.N {
-      break
-    }
-  }
-}
-    
-func TestContext(t *testing.T) {
-  ctx, cancel := context.WithCancel(context.Background())
-  uglies := gomath.Ugly(ctx, 3, 5, 7)
-  cancel()
-  for range uglies {
+  for i := 0; i < b.N; i++ {
+    uglies.Next(value)
   }
 }
