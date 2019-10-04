@@ -118,9 +118,7 @@ func newUpBy3Stream() gomath.BigIntStream {
 }
 
 func (s *linearBigIntStream) Next(value *big.Int) *big.Int {
-  if value != nil {
-    value.Set(s.currentValue)
-  }
+  value.Set(s.currentValue)
   s.currentValue.Add(s.currentValue, s.incrValue)
   return value
 }

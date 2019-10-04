@@ -81,9 +81,7 @@ type partitionStream struct {
 }
 
 func (p *partitionStream) Next(value *big.Int) *big.Int {
-  if value != nil {
-    p.partition.Eval(p.current, value)
-  }
+  p.partition.Eval(p.current, value)
   p.current++
   return value
 }

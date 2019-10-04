@@ -21,9 +21,7 @@ type uglyStream struct {
 }
 
 func (u *uglyStream) Next(value *big.Int) *big.Int {
-  if value != nil {
-    value.Set(u.tail.value)
-  }
+  value.Set(u.tail.value)
   fp := heap.Pop(&u.hp).(*factorPointer)
   for fp.effectiveValue.Cmp(u.tail.value) == 0 {
     fp.advance()

@@ -43,8 +43,6 @@ type bigIntSumStream struct {
 func (s *bigIntSumStream) Next(value *big.Int) *big.Int {
   s.stream.Next(s.nextVal)
   s.sum.Add(s.sum, s.nextVal)
-  if value != nil {
-    value.Set(s.sum)
-  }
+  value.Set(s.sum)
   return value
 }

@@ -13,9 +13,7 @@ const (
 
 // BigIntStream represents an infinite stream of big.Int values.
 type BigIntStream interface {
-  // Next stores the next big.Int value at value and returns value. If caller
-  // doesn't care about the next value, caller can pass nil to Next in which
-  // case Next returns nil.
+  // Next stores the next big.Int value at value and returns value.
   Next(value *big.Int) *big.Int
 }
 
@@ -47,12 +45,11 @@ func (b *NthBigInt) Nth(n int64, value *big.Int) *big.Int {
   if n <= b.numTaken {
     panic(kNotGreater)
   }
-  for n - 1 > b.numTaken {
-    b.stream.Next(nil)
+  for n > b.numTaken {
+    b.stream.Next(value)
     b.numTaken++
   }
-  b.numTaken++
-  return b.stream.Next(value)
+  return value
 }
 
 // NthInt wraps an IntStream and provides the Nth method to return the

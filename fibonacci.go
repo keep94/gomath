@@ -16,9 +16,7 @@ type fibStream struct {
 }
 
 func (f *fibStream) Next(value *big.Int) *big.Int {
-  if value != nil {
-    value.Set(f.a)
-  }
+  value.Set(f.a)
   f.a.Add(f.a, f.b)
   f.a, f.b = f.b, f.a
   return value

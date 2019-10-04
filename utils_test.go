@@ -85,7 +85,6 @@ func checkInfBigIntStream(
       t.Fatalf("Expected %v, got %v", expected, actual)
     }
   }
-  stream.Next(nil)
 }
 
 func assertPP(t *testing.T, pp []gomath.PrimePower, factors ...int64) {
