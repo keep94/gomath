@@ -93,7 +93,7 @@ func newFactorPointer(
 
 func (f *factorPointer) advance() {
   f.valuePtr = f.valuePtr.next
-  f.effectiveValue = f.effectiveValue.Mul(f.primeFactor, f.valuePtr.value)
+  f.effectiveValue.Mul(f.primeFactor, f.valuePtr.value)
 }
 
 func (f *factorPointer) appendEffectiveValue(tail *valueEntry) *valueEntry {
