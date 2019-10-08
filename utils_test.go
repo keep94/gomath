@@ -39,7 +39,7 @@ func assertTrue(t *testing.T, ok bool) {
 
 func assertCloseTo(t *testing.T, expected float64, actual float64) {
   t.Helper()
-  if math.Abs((expected - actual) / expected) > 0.0001 {
+  if math.Abs(expected - actual) / (1.0 + math.Abs(expected)) > 1e-6 {
     t.Errorf("Expected %v, got %v", expected, actual)
   }
 }
