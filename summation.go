@@ -18,11 +18,6 @@ func BigIntSummation(stream BigIntStream) BigIntStream {
 		stream: stream, nextVal: new(big.Int), sum: new(big.Int)}
 }
 
-// Add adds two integers.
-func Add(i, j int) int {
-	return i + j
-}
-
 type intSumStream struct {
 	stream IntStream
 	sum    int64
