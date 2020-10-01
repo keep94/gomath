@@ -74,6 +74,24 @@ func checkInfInt64Stream(
 	}
 }
 
+func checkInt64Stream(
+	t *testing.T, stream gomath.IntStream, expectedValues ...int64) {
+	t.Helper()
+	for _, expected := range expectedValues {
+		actual, ok := stream.Next()
+		if !ok {
+			t.Fatal("No more values on stream")
+		}
+		if actual != expected {
+			t.Fatalf("Expected %v, got %v", expected, actual)
+		}
+	}
+	actual, ok := stream.Next()
+	if ok {
+		t.Fatalf("Expected no more values on stream but got %v", actual)
+	}
+}
+
 func checkInfBigIntStream(
 	t *testing.T, stream gomath.BigIntStream, expectedValues ...int64) {
 	t.Helper()
