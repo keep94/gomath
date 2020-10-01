@@ -1,12 +1,13 @@
 package gomath
 
 import (
-	"github.com/keep94/gocombinatorics"
 	"sort"
+
+	"github.com/keep94/gocombinatorics"
 )
 
-// Products generates all the numbers that can be written as a product of
-// count positive integers each ranging between 1 and n.
+// Products generates all the numbers in ascending order that can be written
+// as a product of count positive integers each ranging between 1 and n.
 func Products(n, count int) IntStream {
 	stream := gocombinatorics.CombinationsWithReplacement(n, count)
 	values := make([]int, stream.TupleSize())
