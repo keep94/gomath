@@ -6,9 +6,13 @@ import (
 	"github.com/keep94/gocombinatorics"
 )
 
-// Products generates all the numbers in ascending order that can be written
+// ProductsSlice returns all the numbers in ascending order that can be written
 // as a product of count positive integers each ranging between 1 and n.
-func Products(n, count int) IntStream {
+// ProductsSlice panics if n < 1 or if count is negative.
+func ProductsSlice(n, count int) []int64 {
+	if n < 1 || count < 0 {
+		panic("n must be greater than 0 and count must be non negative.")
+	}
 	stream := gocombinatorics.CombinationsWithReplacement(n, count)
 	values := make([]int, stream.TupleSize())
 	var products []int64
@@ -17,7 +21,22 @@ func Products(n, count int) IntStream {
 	}
 	sort.Slice(
 		products, func(i, j int) bool { return products[i] < products[j] })
-	return &sliceStream{values: products}
+	idx := 1
+	for i := 1; i < len(products); i++ {
+		if products[i] == products[i-1] {
+			continue
+		}
+		products[idx] = products[i]
+		idx++
+	}
+	result := make([]int64, idx)
+	copy(result, products)
+	return result
+}
+
+// Products is deprecated in favor of ProductsSlice.
+func Products(n, count int) IntStream {
+	return &sliceIntStream{values: ProductsSlice(n, count)}
 }
 
 func computeProduct(values []int) int64 {
@@ -28,19 +47,16 @@ func computeProduct(values []int) int64 {
 	return result
 }
 
-type sliceStream struct {
+type sliceIntStream struct {
 	values []int64
-	index  int
+	idx    int
 }
 
-func (s *sliceStream) Next() (int64, bool) {
-	if s.index == len(s.values) {
+func (s *sliceIntStream) Next() (int64, bool) {
+	if s.idx == len(s.values) {
 		return 0, false
 	}
-	result := s.values[s.index]
-	s.index++
-	for s.index < len(s.values) && result == s.values[s.index] {
-		s.index++
-	}
+	result := s.values[s.idx]
+	s.idx++
 	return result, true
 }
