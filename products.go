@@ -34,7 +34,7 @@ func ProductsSlice(n, count int) []int64 {
 	return result
 }
 
-// Products is deprecated in favor of ProductsSlice.
+// Deprecated: Use ProductsSlice.
 func Products(n, count int) IntStream {
 	return &sliceIntStream{values: ProductsSlice(n, count)}
 }
