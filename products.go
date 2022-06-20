@@ -15,22 +15,15 @@ func ProductsSlice(n, count int) []int64 {
 	}
 	stream := gocombinatorics.CombinationsWithReplacement(n, count)
 	values := make([]int, stream.TupleSize())
-	var products []int64
+	products := make(map[int64]struct{})
 	for stream.Next(values) {
-		products = append(products, computeProduct(values))
+		products[computeProduct(values)] = struct{}{}
 	}
-	sort.Slice(
-		products, func(i, j int) bool { return products[i] < products[j] })
-	idx := 1
-	for i := 1; i < len(products); i++ {
-		if products[i] == products[i-1] {
-			continue
-		}
-		products[idx] = products[i]
-		idx++
+	result := make([]int64, 0, len(products))
+	for p := range products {
+		result = append(result, p)
 	}
-	result := make([]int64, idx)
-	copy(result, products)
+	sort.Slice(result, func(i, j int) bool { return result[i] < result[j] })
 	return result
 }
 
